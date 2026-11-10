@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JFT-Basic 練習問題 40問</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Yu Gothic", "Hiragino Sans", sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 800px; margin: 0 auto; background: white;
+    border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); padding: 30px;
+  }
+  h1 { text-align: center; color: #4c1d95; margin-bottom: 10px; }
+  .subtitle { text-align: center; color: #666; margin-bottom: 30px; }
+  .start-btn {
+    display: block; margin: 30px auto; padding: 15px 50px; font-size: 20px;
+    background: #667eea; color: white; border: none; border-radius: 30px;
+    cursor: pointer; transition: all 0.3s;
+  }
+  .start-btn:hover { background: #4c1d95; transform: translateY(-2px); }
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 20px; padding: 10px; background: #f3f4f6; border-radius: 8px;
+  }
+  .progress-text { font-weight: bold; }
+  .timer {
+    font-size: 24px; font-weight: bold; color: #059669;
+    font-variant-numeric: tabular-nums; min-width: 70px; text-align: right;
+  }
+  .timer.warning { color: #f59e0b; }
+  .timer.danger { color: #dc2626; animation: pulse 0.5s infinite; }
+  @keyframes pulse { 50% { opacity: 0.5; } }
+  .progress-bar {
+    height: 8px; background: #e5e7eb; border-radius: 4px;
+    overflow: hidden; margin-bottom: 20px;
+  }
+  .progress-fill {
+    height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+    transition: width 0.3s;
+  }
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 12px;
+    font-size: 12px; font-weight: bold; margin-bottom: 10px;
+  }
+  .badge.kotoba { background: #dbeafe; color: #1e40af; }
+  .badge.kanji { background: #fce7f3; color: #9f1239; }
+  .badge.hyougen { background: #dcfce7; color: #166534; }
+  .badge.dokkai { background: #fef3c7; color: #92400e; }
+  .passage {
+    background: #f9fafb; border-left: 4px solid #667eea;
+    padding: 15px; border-radius: 8px; margin-bottom: 20px; line-height: 1.8;
+  }
+  .question { font-size: 18px; margin-bottom: 20px; line-height: 1.8; }
+  .options { display: grid; gap: 10px; }
+  .option {
+    padding: 14px 18px; background: white; border: 2px solid #e5e7eb;
+    border-radius: 10px; cursor: pointer; transition: all 0.2s;
+    text-align: left; font-size: 16px; font-family: inherit;
+  }
+  .option:hover:not(.disabled) {
+    border-color: #667eea; background: #f5f3ff; transform: translateX(4px);
+  }
+  .option.correct { background: #dcfce7; border-color: #16a34a; color: #166534; }
+  .option.wrong { background: #fee2e2; border-color: #dc2626; color: #991b1b; }
+  .option.disabled { cursor: default; }
+  .feedback {
+    margin-top: 20px; padding: 15px; border-radius: 10px;
+    font-weight: bold; display: none;
+  }
+  .feedback.correct { background: #dcfce7; color: #166534; display: block; }
+  .feedback.wrong { background: #fee2e2; color: #991b1b; display: block; }
+  .next-btn {
+    margin-top: 20px; padding: 12px 30px; font-size: 16px;
+    background: #667eea; color: white; border: none; border-radius: 8px;
+    cursor: pointer; float: right; display: none;
+  }
+  .next-btn:hover { background: #4c1d95; }
+  .next-btn.show { display: block; }
+  .result-score {
+    text-align: center; font-size: 60px; font-weight: bold;
+    color: #667eea; margin: 20px 0;
+  }
+  .result-detail { text-align: center; font-size: 18px; color: #666; margin-bottom: 30px; }
+  .result-message { text-align: center; font-size: 22px; font-weight: bold; margin-bottom: 30px; }
+  .result-breakdown {
+    background: #f9fafb; padding: 20px; border-radius: 10px; margin-bottom: 20px;
+  }
+  .result-breakdown h3 { margin-top: 0; }
+  .result-breakdown div { margin: 8px 0; }
+  .restart-btn {
+    display: block; margin: 20px auto; padding: 12px 30px; font-size: 16px;
+    background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;
+  }
+  .restart-btn:hover { background: #4c1d95; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="start-screen">
+    <h1>JFT-Basic 練習問題</h1>
+    <p class="subtitle">40 Soal — Kotoba, Kanji, Hyougen, Dokkai</p>
+    <p style="text-align:center; color:#666; line-height:1.8;">
+      📝 Setiap soal memiliki batas waktu<br>
+      ⏱️ Soal pendek: <strong>30 detik</strong><br>
+      📖 Soal panjang: waktu menyesuaikan otomatis<br>
+      ✅ Soal otomatis dikunci saat waktu habis
+    </p>
+    <button class="start-btn" onclick="startQuiz()">スタート</button>
+  </div>
+
+  <div id="quiz-screen" style="display:none;">
+    <div class="header">
+      <div class="progress-text">Soal <span id="q-num">1</span> / 40</div>
+      <div class="timer" id="timer">30s</div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div id="badge-container"></div>
+    <div id="passage-container"></div>
+    <div class="question" id="question-text"></div>
+    <div class="options" id="options-container"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">次へ →</button>
+    <div style="clear:both;"></div>
+  </div>
+
+  <div id="result-screen" style="display:none;">
+    <h1>結果</h1>
+    <div class="result-score" id="result-score">0</div>
+    <div class="result-detail" id="result-detail">0 / 40</div>
+    <div class="result-message" id="result-message"></div>
+    <div class="result-breakdown" id="result-breakdown"></div>
+    <button class="restart-btn" onclick="location.reload()">もう一度</button>
+  </div>
+
+</div>
+
+<script>
+const questions = [
+  // ===== KOTOBA (12) =====
+  { type:'kotoba', question:'毎朝、コーヒーを　（　　）ます。', options:['たべ','のみ','み','きき'], answer:1 },
+  { type:'kotoba', question:'部屋が　暗いですから、電気を　（　　）ください。', options:['つけて','けして','あけて','しめて'], answer:0 },
+  { type:'kotoba', question:'この　道を　まっすぐ　（　　）と、駅が　あります。', options:['あるいて','はしって','とんで','およいで'], answer:0 },
+  { type:'kotoba', question:'友だちの　誕生日に　（　　）を　あげました。', options:['おみやげ','プレゼント','おかね','しごと'], answer:1 },
+  { type:'kotoba', question:'銀行の　（　　）は　３時までです。', options:['えいが','でんしゃ','りょうきん','まどぐち'], answer:3 },
+  { type:'kotoba', question:'この　スープは　ちょっと　（　　）です。', options:['からい','あまい','すっぱい','にがい'], answer:0 },
+  { type:'kotoba', question:'旅行の　（　　）を　たてました。', options:['よてい','じゅんび','けいかく','よやく'], answer:2 },
+  { type:'kotoba', question:'となりの　部屋から　（　　）が　します。', options:['におい','おと','かたち','いろ'], answer:1 },
+  { type:'kotoba', question:'あの　人は　いつも　（　　）を　していますね。', options:['ネクタイ','ぼうし','めがね','くつした'], answer:2 },
+  { type:'kotoba', question:'この　ボタンを　（　　）と、ドアが　開きます。', options:['おす','ひく','まわす','たたく'], answer:0 },
+  { type:'kotoba', question:'会社まで　バスで　３０分　（　　）かかります。', options:['ぐらい','ほど','だけ','しか'], answer:0 },
+  { type:'kotoba', question:'部屋を　（　　）から、出かけます。', options:['きれいで','きれいに','きれいな','きれいだ'], answer:1 },
+
+  // ===== KANJI (12) =====
+  { type:'kanji', question:'「会社」の　読み方は　どれですか。', options:['かいしゃ','かいしや','がいしゃ','かいしょ'], answer:0 },
+  { type:'kanji', question:'「新しい」の　読み方は　どれですか。', options:['あたらしい','あたしい','しんしい','にいしい'], answer:0 },
+  { type:'kanji', question:'「毎日」の　読み方は　どれですか。', options:['まいにち','めいにち','まいひ','まいび'], answer:0 },
+  { type:'kanji', question:'「電車」の　読み方は　どれですか。', options:['てんしゃ','でんしゃ','でんしや','てんしや'], answer:1 },
+  { type:'kanji', question:'「友だち」の　「友」の　読み方は　どれですか。', options:['ゆう','とも','ゆ','ともだち'], answer:1 },
+  { type:'kanji', question:'「安い」の　読み方は　どれですか。', options:['たかい','やすい','ひくい','あさい'], answer:1 },
+  { type:'kanji', question:'「料理」の　読み方は　どれですか。', options:['りょうり','りょり','ろうり','りょうい'], answer:0 },
+  { type:'kanji', question:'「東」の　反対の　ことばは　どれですか。', options:['西','南','北','右'], answer:0 },
+  { type:'kanji', question:'「出口」の　読み方は　どれですか。', options:['でぐち','いでぐち','しゅつぐち','でくち'], answer:0 },
+  { type:'kanji', question:'「地下鉄」の　読み方は　どれですか。', options:['ちかてつ','じかてつ','ちがてつ','ちかでつ'], answer:0 },
+  { type:'kanji', question:'「旅行」の　読み方は　どれですか。', options:['りょこう','りょうこう','りょごう','りょうごう'], answer:0 },
+  { type:'kanji', question:'「店」の　読み方は　どれですか。', options:['みせ','たな','しゃ','てん'], answer:0 },
+
+  // ===== HYOUGEN (8) =====
+  { type:'hyougen', question:'A：「すみません、トイレは　どこですか。」\nB：「（　　）」', options:['はい、そうです。','あそこです。','いいえ、ちがいます。','どうも。'], answer:1 },
+  { type:'hyougen', question:'A：「この　傘を　貸して　ください。」\nB：「（　　）」', options:['はい、どうぞ。','いいえ、けっこうです。','すみません。','ありがとう。'], answer:0 },
+  { type:'hyougen', question:'A：「一緒に　昼ごはんを　食べませんか。」\nB：「（　　）」', options:['ええ、食べました。','ええ、いいですね。','いいえ、食べます。','はい、食べません。'], answer:1 },
+  { type:'hyougen', question:'A：「お先に　失礼します。」\nB：「（　　）」', options:['お疲れさまでした。','いただきます。','ごちそうさまでした。','いってきます。'], answer:0 },
+  { type:'hyougen', question:'A：「（　　）」\nB：「はい、田中と　申します。」', options:['お名前は？','おいくつですか？','どこから　来ましたか？','お仕事は？'], answer:0 },
+  { type:'hyougen', question:'A：「風邪を　ひきました。」\nB：「（　　）」', options:['お大事に。','おめでとう。','おかえりなさい。','いってらっしゃい。'], answer:0 },
+  { type:'hyougen', question:'A：「写真を　撮っても　いいですか。」\nB：「（　　）」', options:['ええ、どうぞ。','いいえ、いいです。','はい、いけません。','ええ、だめです。'], answer:0 },
+  { type:'hyougen', question:'A：「お世話に　なりました。」\nB：「（　　）」', options:['こちらこそ。','おかげさまで。','どういたしまして。','よろしくお願いします。'], answer:0 },
+
+  // ===== DOKKAI (8) =====
+  { type:'dokkai',
+    passage:'わたしは　毎朝　７時に　起きて、シャワーを　浴びてから、朝ごはんを　食べます。それから、８時に　家を　出て、電車で　会社へ　行きます。',
+    question:'この人は　朝　何を　してから、朝ごはんを　食べますか。',
+    options:['会社へ　行きます。','シャワーを　浴びます。','電車に　乗ります。','８時に　起きます。'], answer:1 },
+
+  { type:'dokkai',
+    passage:'きのう　デパートへ　行きました。そこで　新しい　靴を　買いました。少し　高かったですが、とても　気に　入りました。',
+    question:'この人は　デパートで　何を　買いましたか。',
+    options:['かばん','服','靴','時計'], answer:2 },
+
+  { type:'dokkai',
+    passage:'わたしの　趣味は　写真を　撮る　ことです。休みの　日は　よく　公園へ　行って、花や　鳥の　写真を　撮ります。でも、人の　写真は　あまり　撮りません。',
+    question:'この人は　どんな　写真を　よく　撮りますか。',
+    options:['人の　写真','花や　鳥の　写真','動物園の　写真','建物の　写真'], answer:1 },
+
+  { type:'dokkai',
+    passage:'田中さんへ　明日の　会議は　３時からです。会議室は　２階の　２０３号室です。資料を　１０部　コピーして　おいて　ください。よろしく　お願いします。',
+    question:'田中さんは　何を　しなければ　なりませんか。',
+    options:['会議室を　予約する','資料を　コピーする','３時に　電話する','２０３号室を　掃除する'], answer:1 },
+
+  { type:'dokkai',
+    passage:'わたしは　日本に　来て　１年になります。最初は　日本語が　全然　分かりませんでしたが、今は　少し　話せます。毎日　日本の　テレビを　見て、日本語を　勉強して　います。',
+    question:'この人は　今、日本語が　どうですか。',
+    options:['全然　分かりません。','少し　話せます。','とても　上手です。','全然　話せません。'], answer:1 },
+
+  { type:'dokkai',
+    passage:'わたしの　家族は　４人です。父と　母と　妹と　わたしです。父は　会社員で、母は　先生です。妹は　大学生です。わたしは　エンジニアです。',
+    question:'この人の　お母さんの　仕事は　何ですか。',
+    options:['会社員','先生','大学生','エンジニア'], answer:1 },
+
+  { type:'dokkai',
+    passage:'この　店は　朝　９時から　夜　９時までです。日曜日は　休みです。昼ごはんは　７００円で、とても　おいしいです。店の　前に　公園が　あります。',
+    question:'この　店について　正しい　ものは　どれですか。',
+    options:['日曜日も　開いて　います。','夜　１０時までです。','昼ごはんが　おいしいです。','公園の　中に　あります。'], answer:2 },
+
+  { type:'dokkai',
+    passage:'きのう　友だちと　映画を　見に　行きました。映画は　とても　面白かったです。その　あと、レストランで　晩ごはんを　食べました。わたしは　カレーを　食べました。友だちは　パスタを　食べました。',
+    question:'この人は　何を　食べましたか。',
+    options:['パスタ','カレー','映画','晩ごはん'], answer:1 }
+];
+
+let currentQ = 0;
+let score = 0;
+let timerInterval = null;
+let timeLeft = 0;
+let answered = false;
+let results = [];
+
+const typeLabels = {
+  kotoba:   { label: 'KOTOBA（語彙）',    cls: 'kotoba' },
+  kanji:    { label: 'KANJI（漢字）',     cls: 'kanji' },
+  hyougen:  { label: 'HYOUGEN（表現）',   cls: 'hyougen' },
+  dokkai:   { label: 'DOKKAI（読解）',    cls: 'dokkai' }
+};
+
+// ===== TIMER YANG MENYESUAIKAN PANJANG SOAL =====
+// Aturan:
+//   - Soal pendek (Kotoba/Kanji) : MINIMAL 30 detik
+//   - Hyougen (dialog)           : 45 detik + bonus
+//   - Dokkai (bacaan panjang)    : 60 detik + bonus berdasarkan panjang passage
+function calcTime(q) {
+  const passageLen = (q.passage || '').length;
+  const qLen = q.question.length + q.options.join('').length;
+
+  if (q.type === 'dokkai') {
+    // 60 detik dasar + 3 detik tiap 10 karakter passage + 3 detik tiap 20 karakter soal/opsi
+    return 60 + Math.floor(passageLen / 10) * 3 + Math.floor(qLen / 20) * 3;
+  }
+  if (q.type === 'hyougen') {
+    // 45 detik dasar + bonus
+    return 45 + Math.floor(qLen / 25) * 5;
+  }
+  // kotoba & kanji: minimal 30 detik
+  return Math.max(30, 30 + Math.floor(qLen / 30) * 5);
+}
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  currentQ = 0;
+  score = 0;
+  results = [];
+  loadQuestion();
+}
+
+function loadQuestion() {
+  answered = false;
+  const q = questions[currentQ];
+
+  document.getElementById('q-num').textContent = currentQ + 1;
+  document.getElementById('progress-fill').style.width = ((currentQ / questions.length) * 100) + '%';
+
+  const t = typeLabels[q.type];
+  document.getElementById('badge-container').innerHTML =
+    `<span class="badge ${t.cls}">${t.label}</span>`;
+
+  const passageEl = document.getElementById('passage-container');
+  passageEl.innerHTML = q.passage
+    ? `<div class="passage">${q.passage.replace(/\n/g, '<br>')}</div>`
+    : '';
+
+  document.getElementById('question-text').innerHTML = q.question.replace(/\n/g, '<br>');
+
+  const optsEl = document.getElementById('options-container');
+  optsEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option';
+    btn.textContent = `${String.fromCharCode(65+i)}. ${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    optsEl.appendChild(btn);
+  });
+
+  document.getElementById('feedback').className = 'feedback';
+  document.getElementById('feedback').textContent = '';
+  document.getElementById('next-btn').classList.remove('show');
+
+  // Timer
+  timeLeft = calcTime(q);
+  updateTimerDisplay();
+  clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!answered) timeout();
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const el = document.getElementById('timer');
+  el.textContent = timeLeft + 's';
+  el.className = 'timer';
+  if (timeLeft <= 10) el.classList.add('danger');
+  else if (timeLeft <= 20) el.classList.add('warning');
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  const q = questions[currentQ];
+  const isCorrect = idx === q.answer;
+  if (isCorrect) score++;
+  results.push({ correct: isCorrect, type: q.type });
+
+  const opts = document.querySelectorAll('.option');
+  opts.forEach((opt, i) => {
+    opt.classList.add('disabled');
+    opt.onclick = null;
+    if (i === q.answer) opt.classList.add('correct');
+    else if (i === idx && !isCorrect) opt.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('feedback');
+  if (isCorrect) {
+    fb.className = 'feedback correct';
+    fb.textContent = '✅ 正解！';
+  } else {
+    fb.className = 'feedback wrong';
+    fb.textContent = `❌ 不正解... 正解は ${String.fromCharCode(65+q.answer)}. ${q.options[q.answer]}`;
+  }
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function timeout() {
+  answered = true;
+  const q = questions[currentQ];
+  results.push({ correct: false, type: q.type });
+
+  const opts = document.querySelectorAll('.option');
+  opts.forEach((opt, i) => {
+    opt.classList.add('disabled');
+    opt.onclick = null;
+    if (i === q.answer) opt.classList.add('correct');
+  });
+
+  const fb = document.getElementById('feedback');
+  fb.className = 'feedback wrong';
+  fb.textContent = `⏰ 時間切れ！正解は ${String.fromCharCode(65+q.answer)}. ${q.options[q.answer]}`;
+
+  document.getElementById('next-btn').classList.add('show');
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    showResult();
+  } else {
+    loadQuestion();
+  }
+}
+
+function showResult() {
+  clearInterval(timerInterval);
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('result-screen').style.display = 'block';
+
+  document.getElementById('result-score').textContent = score;
+  document.getElementById('result-detail').textContent = `${score} / ${questions.length}`;
+
+  const pct = (score / questions.length) * 100;
+  let msg;
+  if (pct >= 90)      msg = '🌟 素晴らしい！';
+  else if (pct >= 70) msg = '👍 よくできました！';
+  else if (pct >= 50) msg = '💪 もう少し頑張りましょう！';
+  else                msg = '📚 復習しましょう！';
+  document.getElementById('result-message').textContent = msg;
+
+  const byType = { kotoba:[0,0], kanji:[0,0], hyougen:[0,0], dokkai:[0,0] };
+  results.forEach(r => {
+    byType[r.type][1]++;
+    if (r.correct) byType[r.type][0]++;
+  });
+
+  let html = '<h3>分野別結果</h3>';
+  Object.keys(byType).forEach(k => {
+    const [c, t] = byType[k];
+    if (t > 0) html += `<div>${typeLabels[k].label}: <strong>${c} / ${t}</strong></div>`;
+  });
+  document.getElementById('result-breakdown').innerHTML = html;
+}
+</script>
+</body>
+</html>
